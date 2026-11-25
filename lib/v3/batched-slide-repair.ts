@@ -1,4 +1,4 @@
-import { generateJsonWithConfiguredProvider } from "@/lib/v3/llm";
+import { callLLMChatCompletion } from "@/lib/v3/services/llmService";
 
 export interface BrokenSlidePayload {
   index: number;
@@ -69,19 +69,27 @@ export async function repairBrokenSlidesBatch(
     .join("\n");
 
   try {
-    const repaired = await generateJsonWithConfiguredProvider<
-      Record<string, Record<string, unknown>>
-    >({
-      prompt,
-      temperature: 0.3,
-    });
+    const result = await callLLMChatCompletion(
+      [
+        {
+          role: "system",
+          content: "You repair presentation slide JSON fields concisely and return valid JSON.",
+        },
+        { role: "user", content: prompt },
+      ],
+      {
+        temperature: 0.3,
+        response_format: { type: "json_object" },
+      }
+    );
 
+    const parsed = JSON.parse(result.text) as Record<string, unknown>;
     const out: Record<number, Record<string, unknown>> = {};
-    if (repaired && typeof repaired === "object") {
-      for (const [key, val] of Object.entries(repaired)) {
+    if (parsed && typeof parsed === "object") {
+      for (const [key, val] of Object.entries(parsed)) {
         const idx = Number(key);
-        if (Number.isInteger(idx) && val && typeof val === "object") {
-          out[idx] = val;
+        if (Number.isInteger(idx) && val && typeof val === "object" && !Array.isArray(val)) {
+          out[idx] = val as Record<string, unknown>;
         }
       }
     }

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
-import { OverlayLoader } from "@/components/ui/overlay-loader";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 import { cn } from "@/lib/utils";
 import { RootState, store } from "@/store/store";
 import {
@@ -384,11 +384,9 @@ const OutlinePage: React.FC = () => {
         isTemplateStage ? "bg-[#FEFEFF]" : "bg-[#F6F6F9]"
       )}
     >
-      <OverlayLoader
+      <FullscreenLoader
         show={loadingState.isLoading}
-        text={loadingState.message}
-        showProgress={loadingState.showProgress}
-        duration={loadingState.duration}
+        message={loadingState.message}
       />
 
       <OutlineStandardHeader

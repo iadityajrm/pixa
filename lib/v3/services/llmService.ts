@@ -94,10 +94,21 @@ async function postChatCompletion(
   retryDeadlineMs?: number,
 ): Promise<Response> {
   const { provider, apiKey, baseUrl } = resolved;
-  const requestBody =
-    provider === "groq" && /gpt-oss/i.test(resolved.effectiveModel)
-      ? { ...body, reasoning_effort: "low" }
-      : body;
+  const isGroqGptOss =
+    provider === "groq" && /gpt-oss/i.test(resolved.effectiveModel);
+  const requestBody = isGroqGptOss
+    ? {
+        ...body,
+        reasoning_effort: "low",
+        ...(!body.response_format
+          ? {
+              tools: Array.isArray(body.tools)
+                ? [...body.tools, { type: "browser_search" }]
+                : [{ type: "browser_search" }],
+            }
+          : {}),
+      }
+    : body;
 
   for (let attempt = 0; ; attempt += 1) {
     if (retryDeadlineMs != null && Date.now() >= retryDeadlineMs) {

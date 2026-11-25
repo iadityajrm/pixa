@@ -20,7 +20,7 @@ import { LanguageType, PresentationConfig, ToneType, VerbosityType } from "../ty
 import SupportingDoc from "./SupportingDoc";
 import { notify } from "@/components/ui/sonner";
 import { PresentationGenerationApi } from "../../services/api/presentation-generation";
-import { OverlayLoader } from "@/components/ui/overlay-loader";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 import Wrapper from "@/components/Wrapper";
 import { setPptGenUploadState } from "@/store/slices/presentationGenUpload";
 import { trackEvent, MixpanelEvent } from "@/utils/mixpanel";
@@ -670,16 +670,14 @@ const UploadPage = ({
   return (
     <Wrapper className="w-full pb-10">
       <GenerateUserGuide mode={generationMode} communityEnabled={communityEnabled} />
-      <OverlayLoader
+      <FullscreenLoader
         show={loadingState.isLoading}
-        text={loadingState.message}
-        showProgress={loadingState.showProgress}
-        duration={loadingState.duration}
-        extra_info={loadingState.extra_info}
+        message={loadingState.message}
+        extraInfo={loadingState.extra_info}
       />
-      <OverlayLoader
+      <FullscreenLoader
         show={isCheckingAuth && !loadingState.isLoading}
-        text="Checking your session..."
+        message="Checking your session..."
       />
       <div className="mx-auto max-w-[742px] space-y-[14px] px-3 sm:px-4">
         <div data-generate-guide="prompt" className="motion-enter motion-delay-1 relative mt-[10px]">

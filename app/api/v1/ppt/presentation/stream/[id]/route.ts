@@ -36,7 +36,7 @@ const SLIDE_CONCURRENCY = Math.min(
   4,
   Math.max(
     1,
-    Number.parseInt(process.env.PRESENTATION_SLIDE_CONCURRENCY ?? "", 10) || 3,
+    Number.parseInt(process.env.PRESENTATION_SLIDE_CONCURRENCY ?? "", 10) || 1,
   ),
 );
 
@@ -427,8 +427,8 @@ export async function GET(
               onUsage: recordUsage,
               onDiagnostics: (diag) => {
                 if (diag.repairOperations.length > 0 || diag.remainingViolations?.length) {
-                  slideWarnings.push(
-                    `Slide ${index + 1}: automatic schema repair applied (${diag.repairOperations.length} operations, source: ${diag.finalGenerationSource}).`,
+                  console.info(
+                    `[Pixa V3 presentation stream] Slide ${index + 1}: automatic schema repair applied (${diag.repairOperations.length} operations, source: ${diag.finalGenerationSource}).`,
                   );
                 }
               },
@@ -439,8 +439,8 @@ export async function GET(
               error,
             );
             content = buildFallbackContent(slideLayout.json_schema, outlines[index]);
-            slideWarnings.push(
-              `Slide ${index + 1} was created from the outline without AI content.`,
+            console.warn(
+              `[Pixa V3 presentation stream] Slide ${index + 1} was created from the outline without AI content.`,
             );
           }
 

@@ -284,6 +284,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ presentation_id: presentationId });
   } catch (err: any) {
+    console.error("[Pixa V3 presentation prepare] error:", err);
     return NextResponse.json({ detail: err.message }, { status: 500 });
   }
 }

@@ -21,7 +21,8 @@ const ASSET_ONLY_FIELDS = ["__image_url__", "__icon_url__"];
 
 export const SLIDE_CONTENT_SYSTEM_PROMPT = `You generate structured slide JSON matching the provided prototype schema and slide outline.
 # Rules:
-- Synthesize the outline into rich, well-developed content with concrete facts, details, and realistic metrics. Do not copy outline bullets verbatim.
+- Ground every fact, metric, and number in the provided slide outline or retrieved context. Do not invent ungrounded statistics; if no specific figure is provided, use qualitative analysis or explicitly label illustrative examples.
+- Respect every field's character limit strictly on the first pass. Write concise, complete sentences that end with proper punctuation—never leave a sentence unfinished or mid-clause.
 - Populate every field in the response prototype schema.
 - When the slide is a title or cover layout, write a short, bold headline (at most 8 words) with a single supporting subtitle.
 - Output audience-facing text only (no meta-commentary, commands, or styling commentary).
@@ -93,13 +94,23 @@ export function prepareResponseSchema(
 export function toCompactPrototype(schema: any): any {
   if (!schema || typeof schema !== "object") return schema;
 
+  if (schema.const !== undefined) {
+    return typeof schema.const === "string"
+      ? `const("${schema.const}")`
+      : schema.const;
+  }
+
   if (schema.type === "string") {
     if (schema.enum && Array.isArray(schema.enum)) {
       return `enum(${schema.enum.join("|")})`;
     }
     const parts: string[] = [];
     if (schema.minLength || schema.maxLength) {
-      parts.push(`${schema.minLength || 0}-${schema.maxLength || "inf"} chars`);
+      parts.push(
+        schema.maxLength
+          ? `MAX ${schema.maxLength} chars (min ${schema.minLength || 0})`
+          : `min ${schema.minLength} chars`,
+      );
     }
     if (schema.description && !schema.description.toLowerCase().includes("string")) {
       parts.push(schema.description);
@@ -107,8 +118,17 @@ export function toCompactPrototype(schema: any): any {
     return parts.length ? `string (${parts.join(", ")})` : "string";
   }
 
-  if (schema.type === "number") return "number";
-  if (schema.type === "integer") return "integer";
+  if (schema.type === "number" || schema.type === "integer") {
+    const hasMin = typeof schema.minimum === "number";
+    const hasMax = typeof schema.maximum === "number";
+    if (hasMin || hasMax) {
+      const minStr = hasMin ? String(schema.minimum) : "-inf";
+      const maxStr = hasMax ? String(schema.maximum) : "inf";
+      return `${schema.type} (${minStr}..${maxStr})`;
+    }
+    return schema.type;
+  }
+
   if (schema.type === "boolean") return "boolean";
 
   if (schema.type === "array") {
@@ -127,6 +147,29 @@ export function toCompactPrototype(schema: any): any {
   }
 
   return "string";
+}
+
+function collectArrayConstraints(schema: any, path = "root", out: string[] = []): string[] {
+  if (!isRecord(schema)) return out;
+  if (schema.type === "array") {
+    const hasMin = typeof schema.minItems === "number";
+    const hasMax = typeof schema.maxItems === "number";
+    if (hasMin || hasMax) {
+      const min = hasMin ? schema.minItems : 0;
+      const max = hasMax ? schema.maxItems : "inf";
+      out.push(`- ${path}: ${min === max ? `exactly ${min}` : `${min}-${max}`} items`);
+    }
+    if (isRecord(schema.items)) {
+      collectArrayConstraints(schema.items, `${path}[]`, out);
+    }
+    return out;
+  }
+  if (isRecord(schema.properties)) {
+    for (const [key, prop] of Object.entries(schema.properties)) {
+      collectArrayConstraints(prop, `${path}.${key}`, out);
+    }
+  }
+  return out;
 }
 
 function systemPrompt(options: {
@@ -160,6 +203,10 @@ function systemPrompt(options: {
   }
 
   const compactSchema = toCompactPrototype(schema);
+  const arrayConstraints = collectArrayConstraints(schema);
+  const arrayConstraintsSection = arrayConstraints.length
+    ? `\n# Array Item Counts:\n${arrayConstraints.join("\n")}`
+    : "";
 
   return SLIDE_CONTENT_SYSTEM_PROMPT.replace(
     "{user_instructions}",
@@ -169,7 +216,7 @@ function systemPrompt(options: {
     .replace("{verbosity_instructions}", verbosityInstructions)
     .replace(
       "{output_fields_instructions}",
-      JSON.stringify(compactSchema),
+      `${JSON.stringify(compactSchema)}${arrayConstraintsSection}`,
     )
     .replace(/\{user_instructions\}|\{tone_instructions\}|\{verbosity_instructions\}|\{output_fields_instructions\}/g, "");
 }
@@ -301,6 +348,24 @@ function stripCodeFences(text: string): string {
   return text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
 }
 
+function isJsonValidateFailedError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("json_validate_failed");
+}
+
+function extractFailedGeneration(err: unknown): string | null {
+  const msg = err instanceof Error ? err.message : String(err);
+  const jsonStart = msg.indexOf("{");
+  if (jsonStart === -1) return null;
+  try {
+    const body = JSON.parse(msg.slice(jsonStart));
+    const failed = body?.error?.failed_generation;
+    return typeof failed === "string" && failed.trim() ? failed : null;
+  } catch {
+    return null;
+  }
+}
+
 // Length deviations are cosmetic: the slide still renders, so retrying only
 // burns TPM budget. Structural problems (types, enums, missing fields) still
 // get one repair attempt.
@@ -314,6 +379,59 @@ export interface SlideContentUsage {
   model: string;
   prompt_tokens: number;
   completion_tokens: number;
+}
+
+function hasChartPayload(content: Dict): boolean {
+  const json = JSON.stringify(content);
+  return (
+    /"(chartData|series|datasets|dataPoints)"\s*:/.test(json) &&
+    /"categories"\s*:/.test(json)
+  );
+}
+
+/**
+ * Lightweight post-generation critic for slides containing charts.
+ * Verifies that chart metrics, units, and directional trends align with the slide's thesis.
+ */
+async function verifyAndFixChartLogic(options: {
+  content: Dict;
+  outlineContent: string;
+  retryDeadlineMs?: number;
+  onRetry?: (info: LLMRetryInfo) => void;
+}): Promise<Dict> {
+  const { content, outlineContent, retryDeadlineMs, onRetry } = options;
+  if (!hasChartPayload(content)) return content;
+  if (retryDeadlineMs && Date.now() + 4000 >= retryDeadlineMs) return content;
+
+  try {
+    const result = await callLLMChatCompletion(
+      [
+        {
+          role: "system",
+          content:
+            "You are a financial and data-visualization critic. Check if the chart data (labels, units, values, and directional trend) in the slide JSON is logically and conceptually consistent with the slide's title, body text, and outline. If it is already consistent, return the JSON unchanged. If there is a conceptual or directional error (e.g., inverted trend, mismatched units), return the corrected JSON object only.",
+        },
+        {
+          role: "user",
+          content: `Outline:\n${outlineContent}\n\nSlide JSON:\n${JSON.stringify(content)}`,
+        },
+      ],
+      {
+        temperature: 0.1,
+        max_tokens: 4096,
+        response_format: { type: "json_object" },
+        retryDeadlineMs,
+        onRetry,
+      },
+    );
+    const parsed = parseJsonWithRepair(stripCodeFences(result.text));
+    if (parsed && isRecord(parsed) && Object.keys(parsed).length > 0) {
+      return parsed;
+    }
+  } catch {
+    // Non-fatal: keep original repaired content if critic fails
+  }
+  return content;
 }
 
 export async function generateSlideContent(options: {
@@ -366,26 +484,47 @@ export async function generateSlideContent(options: {
 
   // Attempt 1: Standard generation
   try {
-    const result = await callLLMChatCompletion(messages, {
-      temperature: 0.4,
-      max_tokens: 4096,
-      response_format: { type: "json_object" },
-      retryDeadlineMs,
-      onRetry,
-    });
+    let rawText = "";
+    let attempt1JsonValidateFailed = false;
+    try {
+      const result = await callLLMChatCompletion(messages, {
+        temperature: 0.4,
+        max_tokens: 4096,
+        response_format: { type: "json_object" },
+        retryDeadlineMs,
+        onRetry,
+      });
 
-    if (result.usage) {
-      initialUsage = {
-        model: result.model,
-        prompt_tokens: result.usage.prompt_tokens,
-        completion_tokens: result.usage.completion_tokens,
-      };
-      finalUsage = initialUsage;
-      onUsage?.(initialUsage);
+      if (result.usage) {
+        initialUsage = {
+          model: result.model,
+          prompt_tokens: result.usage.prompt_tokens,
+          completion_tokens: result.usage.completion_tokens,
+        };
+        finalUsage = initialUsage;
+        onUsage?.(initialUsage);
+      }
+
+      rawText = stripCodeFences(result.text);
+    } catch (attempt1Err) {
+      if (!isJsonValidateFailedError(attempt1Err)) {
+        throw attempt1Err;
+      }
+      attempt1JsonValidateFailed = true;
+      const recovered = extractFailedGeneration(attempt1Err);
+      if (recovered) {
+        console.warn(
+          `[schema-repair] slide ${slideNumber} recovered failed_generation from Groq json_validate_failed`,
+        );
+        rawText = stripCodeFences(recovered);
+      } else {
+        console.warn(
+          `[schema-repair] slide ${slideNumber} hit Groq json_validate_failed with no recoverable payload; retrying`,
+        );
+      }
     }
 
-    const rawText = stripCodeFences(result.text);
-    const parsed = parseJsonWithRepair(rawText);
+    const parsed = rawText ? parseJsonWithRepair(rawText) : null;
 
     // Assess whether response is fundamentally unusable (severe corruption, unparseable, 0 matching props)
     const unusableAssessment = assessFundamentallyUnusable(rawText, parsed, schema);
@@ -407,10 +546,16 @@ export async function generateSlideContent(options: {
       );
 
       if (repairResult.passedValidation) {
+        const verifiedContent = await verifyAndFixChartLogic({
+          content: repairResult.content,
+          outlineContent,
+          retryDeadlineMs,
+          onRetry,
+        });
         onDiagnostics?.(repairResult.diagnostics);
-        return repairResult.content;
+        return verifiedContent;
       }
-    } else {
+    } else if (!attempt1JsonValidateFailed) {
       console.warn(
         `[schema-repair] slide ${slideNumber} generated fundamentally unusable response: ${unusableAssessment.reason}`,
       );
@@ -441,28 +586,41 @@ export async function generateSlideContent(options: {
         });
       }
 
-      const retryResult = await callLLMChatCompletion(messages, {
-        temperature: 0.2,
-        max_tokens: 6144,
-        response_format: { type: "json_object" },
-        retryDeadlineMs,
-        onRetry,
-      });
-
-      if (retryResult.usage) {
-        finalUsage = {
-          model: retryResult.model,
-          prompt_tokens: (initialUsage?.prompt_tokens ?? 0) + retryResult.usage.prompt_tokens,
-          completion_tokens: (initialUsage?.completion_tokens ?? 0) + retryResult.usage.completion_tokens,
-        };
-        onUsage?.({
-          model: retryResult.model,
-          prompt_tokens: retryResult.usage.prompt_tokens,
-          completion_tokens: retryResult.usage.completion_tokens,
+      let retryRawText = "";
+      try {
+        const retryResult = await callLLMChatCompletion(messages, {
+          temperature: 0.2,
+          max_tokens: 6144,
+          response_format: { type: "json_object" },
+          retryDeadlineMs,
+          onRetry,
         });
+
+        if (retryResult.usage) {
+          finalUsage = {
+            model: retryResult.model,
+            prompt_tokens: (initialUsage?.prompt_tokens ?? 0) + retryResult.usage.prompt_tokens,
+            completion_tokens: (initialUsage?.completion_tokens ?? 0) + retryResult.usage.completion_tokens,
+          };
+          onUsage?.({
+            model: retryResult.model,
+            prompt_tokens: retryResult.usage.prompt_tokens,
+            completion_tokens: retryResult.usage.completion_tokens,
+          });
+        }
+        retryRawText = stripCodeFences(retryResult.text);
+      } catch (retryErr) {
+        if (!isJsonValidateFailedError(retryErr)) {
+          throw retryErr;
+        }
+        const recoveredRetry = extractFailedGeneration(retryErr);
+        if (!recoveredRetry) {
+          throw retryErr;
+        }
+        retryRawText = stripCodeFences(recoveredRetry);
       }
 
-      const retryParsed = parseJsonWithRepair(stripCodeFences(retryResult.text));
+      const retryParsed = retryRawText ? parseJsonWithRepair(retryRawText) : null;
       if (retryParsed) {
         const retryRepairResult = executeSchemaRepairPipeline({
           schema,

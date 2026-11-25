@@ -748,44 +748,83 @@ export function repairStructuralLevel1(
     }
   }
 
-  // String length boundary adjustments
+  // Numeric range clamping (minimum / maximum)
+  if (
+    (expectedType === "number" || expectedType === "integer") &&
+    typeof data === "number" &&
+    !Number.isNaN(data)
+  ) {
+    let clamped = expectedType === "integer" ? Math.round(data) : data;
+    if (typeof schema.minimum === "number" && clamped < schema.minimum) {
+      clamped = schema.minimum;
+    }
+    if (typeof schema.maximum === "number" && clamped > schema.maximum) {
+      clamped = schema.maximum;
+    }
+    if (clamped !== data) {
+      operations.push({
+        level: 1,
+        type: "clamp_number_range",
+        path,
+        description: `Clamped ${path} from ${data} to ${clamped}`,
+      });
+      data = clamped;
+    }
+  }
+
+  // String length boundary adjustments: trim only at complete sentence boundaries
   if (typeof data === "string") {
     if (typeof schema.maxLength === "number" && data.length > schema.maxLength) {
       const originalLen = data.length;
-      // Complete sentence preservation: if sentence naturally terminates within soft limit, keep it
-      const softMax = Math.min(data.length, Math.floor(schema.maxLength * 1.15));
-      const candidate = data.slice(0, softMax);
-      const sentenceEnd = Math.max(
-        candidate.lastIndexOf("."),
-        candidate.lastIndexOf(";"),
-        candidate.lastIndexOf("!"),
-        candidate.lastIndexOf("?"),
-      );
-
-      let trimmed = "";
-      if (sentenceEnd >= Math.floor(schema.maxLength * 0.7)) {
-        trimmed = candidate.slice(0, sentenceEnd + 1).trim();
-      } else {
-        const sliced = data.slice(0, schema.maxLength);
-        const lastSpace = sliced.lastIndexOf(" ");
-        if (lastSpace > schema.maxLength * 0.6) {
-          trimmed = sliced.slice(0, lastSpace).trim();
-        } else {
-          trimmed = sliced.trim();
-        }
+      const trimmed = trimToCompleteSentence(data, schema.maxLength);
+      if (trimmed.length < originalLen) {
+        operations.push({
+          level: 1,
+          type: "trim_string_length",
+          path,
+          description: `Trimmed string at ${path} from ${originalLen} to ${trimmed.length} chars (maxLength ${schema.maxLength})`,
+        });
+        data = trimmed;
       }
-
-      operations.push({
-        level: 1,
-        type: "trim_string_length",
-        path,
-        description: `Trimmed string at ${path} from ${originalLen} to ${trimmed.length} chars (maxLength ${schema.maxLength})`,
-      });
-      data = trimmed;
     }
   }
 
   return data;
+}
+
+/**
+ * Trim a string to a complete sentence boundary near `maxLength`.
+ * Never slices mid-clause at a word boundary.
+ */
+function trimToCompleteSentence(text: string, maxLength: number): string {
+  const trimmedInput = text.trim();
+  if (trimmedInput.length <= maxLength) return trimmedInput;
+
+  const findLastSentenceEnd = (slice: string) =>
+    Math.max(
+      slice.lastIndexOf("."),
+      slice.lastIndexOf(";"),
+      slice.lastIndexOf("!"),
+      slice.lastIndexOf("?"),
+    );
+
+  // Prefer a complete sentence ending within maxLength (at least 45% of budget)
+  const withinBudget = trimmedInput.slice(0, maxLength);
+  const sentenceEndWithin = findLastSentenceEnd(withinBudget);
+  if (sentenceEndWithin >= Math.floor(maxLength * 0.45)) {
+    return withinBudget.slice(0, sentenceEndWithin + 1).trim();
+  }
+
+  // Otherwise allow a small 25% overflow to finish the current sentence cleanly
+  const softMax = Math.min(trimmedInput.length, Math.floor(maxLength * 1.25));
+  const softSlice = trimmedInput.slice(0, softMax);
+  const sentenceEndSoft = findLastSentenceEnd(softSlice);
+  if (sentenceEndSoft >= Math.floor(maxLength * 0.45)) {
+    return softSlice.slice(0, sentenceEndSoft + 1).trim();
+  }
+
+  // Never slice mid-clause; return intact if no sentence boundary is nearby
+  return trimmedInput;
 }
 
 // ---------------------------------------------------------------------------
@@ -799,27 +838,7 @@ function fitStringToSchema(
 ): string {
   let res = str.trim();
   if (typeof schema.maxLength === "number" && res.length > schema.maxLength) {
-    // Preserve whole thoughts and sentence endings rather than punishing with abrupt cuts
-    const softMax = Math.min(res.length, Math.floor(schema.maxLength * 1.15));
-    const candidate = res.slice(0, softMax);
-    const sentenceEnd = Math.max(
-      candidate.lastIndexOf("."),
-      candidate.lastIndexOf(";"),
-      candidate.lastIndexOf("!"),
-      candidate.lastIndexOf("?"),
-    );
-
-    if (sentenceEnd >= Math.floor(schema.maxLength * 0.7)) {
-      res = candidate.slice(0, sentenceEnd + 1).trim();
-    } else {
-      const sliced = res.slice(0, schema.maxLength);
-      const lastSpace = sliced.lastIndexOf(" ");
-      if (lastSpace > schema.maxLength * 0.6) {
-        res = sliced.slice(0, lastSpace).trim();
-      } else {
-        res = sliced.trim();
-      }
-    }
+    res = trimToCompleteSentence(res, schema.maxLength);
   }
   if (typeof schema.minLength === "number" && res.length < schema.minLength) {
     if (fallbackContext) {
@@ -1095,6 +1114,28 @@ export function reconstructContentLevel2(
               description: `Reconstructed missing required object '${key}' from outline`,
             });
           }
+        } else if (propSchema.type === "number" || propSchema.type === "integer") {
+          let val = typeof propSchema.minimum === "number" ? propSchema.minimum : 0;
+          if (typeof propSchema.maximum === "number" && val > propSchema.maximum) {
+            val = propSchema.maximum;
+          }
+          data[key] = propSchema.type === "integer" ? Math.round(val) : val;
+          reconstructedFields.push(fieldPath);
+          operations.push({
+            level: 2,
+            type: "reconstruct_number_default",
+            path: fieldPath,
+            description: `Initialized missing required ${propSchema.type} '${key}' to ${data[key]}`,
+          });
+        } else if (propSchema.type === "boolean") {
+          data[key] = false;
+          reconstructedFields.push(fieldPath);
+          operations.push({
+            level: 2,
+            type: "reconstruct_boolean_default",
+            path: fieldPath,
+            description: `Initialized missing required boolean '${key}' to false`,
+          });
         } else if (propSchema.type === "array") {
           const minItems = typeof propSchema.minItems === "number" ? propSchema.minItems : 1;
           const itemSchema = isRecord(propSchema.items) ? propSchema.items : null;
@@ -1114,6 +1155,14 @@ export function reconstructContentLevel2(
               } else if (itemSchema.type === "string") {
                 const itemText = outline.bullets[i] || outline.bullets[0] || outline.heading;
                 arr.push(fitStringToSchema(itemText, itemSchema, outline.body));
+              } else if (itemSchema.type === "number" || itemSchema.type === "integer") {
+                let val = typeof itemSchema.minimum === "number" ? itemSchema.minimum : 0;
+                if (typeof itemSchema.maximum === "number" && val > itemSchema.maximum) {
+                  val = itemSchema.maximum;
+                }
+                arr.push(itemSchema.type === "integer" ? Math.round(val) : val);
+              } else if (itemSchema.type === "boolean") {
+                arr.push(false);
               } else if (itemSchema.type === "array" && isRecord(itemSchema.items)) {
                 const rowMin = typeof itemSchema.minItems === "number" ? itemSchema.minItems : 2;
                 const row: any[] = [];
@@ -1189,6 +1238,28 @@ export function reconstructContentLevel2(
             type: "reconstruct_array_item_from_outline",
             path: itemPath,
             description: `Reconstructed missing array string item ${itemIdx + 1}/${minItems} from outline`,
+          });
+        } else if (itemSchema.type === "number" || itemSchema.type === "integer") {
+          let val = typeof itemSchema.minimum === "number" ? itemSchema.minimum : 0;
+          if (typeof itemSchema.maximum === "number" && val > itemSchema.maximum) {
+            val = itemSchema.maximum;
+          }
+          data.push(itemSchema.type === "integer" ? Math.round(val) : val);
+          reconstructedFields.push(itemPath);
+          operations.push({
+            level: 2,
+            type: "reconstruct_array_number_item",
+            path: itemPath,
+            description: `Initialized missing array ${itemSchema.type} item ${itemIdx + 1}/${minItems}`,
+          });
+        } else if (itemSchema.type === "boolean") {
+          data.push(false);
+          reconstructedFields.push(itemPath);
+          operations.push({
+            level: 2,
+            type: "reconstruct_array_boolean_item",
+            path: itemPath,
+            description: `Initialized missing array boolean item ${itemIdx + 1}/${minItems}`,
           });
         } else if (itemSchema.type === "array" && isRecord(itemSchema.items)) {
           // Table row reconstruction
@@ -1443,6 +1514,14 @@ export function buildFallbackContent(
           } else if (itemSchema.type === "string") {
             const itemText = parsedOutline.bullets[i] || parsedOutline.bullets[0] || heading;
             arr.push(fitStringToSchema(itemText, itemSchema, parsedOutline.body));
+          } else if (itemSchema.type === "number" || itemSchema.type === "integer") {
+            let val = typeof itemSchema.minimum === "number" ? itemSchema.minimum : 0;
+            if (typeof itemSchema.maximum === "number" && val > itemSchema.maximum) {
+              val = itemSchema.maximum;
+            }
+            arr.push(itemSchema.type === "integer" ? Math.round(val) : val);
+          } else if (itemSchema.type === "boolean") {
+            arr.push(false);
           } else if (itemSchema.type === "array" && isRecord(itemSchema.items)) {
             const rowMin = typeof itemSchema.minItems === "number" ? itemSchema.minItems : 2;
             const row: any[] = [];

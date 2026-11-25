@@ -277,6 +277,14 @@ const PresentationHeader = ({
                 "Exporting presentations requires purchasing presentation credits. Redirecting to Plans page..."
             );
           }
+          if (response.status === 501 || errData.export_unavailable) {
+            notify.error(
+              "PPTX export unavailable",
+              "PPTX export requires the desktop app or presentation-export runtime. You can export as PDF instead.",
+              exportToastId !== undefined ? { id: exportToastId } : undefined
+            );
+            return;
+          }
           throw new Error(errData.error || "Failed to export PPTX");
         }
 
@@ -321,13 +329,15 @@ const PresentationHeader = ({
     }
   };
 
+  const openBrowserPdfPrint = () => {
+    const url = `/pdf-maker?id=${encodeURIComponent(presentation_id)}&format=pdf&autoprint=1`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const handleExportPdf = async () => {
     if (isStreaming) return;
     if (!export_enabled && !window.electron?.exportPresentation) {
-      notify.error(
-        "Export unavailable",
-        "PDF export needs the desktop app or a local server. Run the app locally to enable it."
-      );
+      openBrowserPdfPrint();
       return;
     }
 
@@ -381,6 +391,15 @@ const PresentationHeader = ({
               errData.error ||
                 "Exporting presentations requires purchasing presentation credits. Redirecting to Plans page..."
             );
+          }
+          if (response.status === 501 || errData.export_unavailable) {
+            openBrowserPdfPrint();
+            notify.success(
+              "Opening PDF print view",
+              "Use your browser's Save as PDF option in the print dialog.",
+              exportToastId !== undefined ? { id: exportToastId } : undefined
+            );
+            return;
           }
           throw new Error(errData.error || "Failed to export PDF");
         }

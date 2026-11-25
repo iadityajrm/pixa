@@ -123,6 +123,13 @@ export function loadChartBrowserRuntime(): Promise<ChartBrowserRuntime> {
       throw new Error("The local Chart.js runtime is incomplete");
     }
     Chart.register(ChartDataLabels);
+    // Ensure charts render with a transparent canvas background so they inherit dark/light slide themes
+    const chartWithDefaults = Chart as ChartConstructorLike & {
+      defaults?: { backgroundColor?: string };
+    };
+    if (chartWithDefaults.defaults) {
+      chartWithDefaults.defaults.backgroundColor = "transparent";
+    }
     return { Chart, ChartDataLabels };
   })();
 

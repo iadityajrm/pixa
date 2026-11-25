@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { OverlayLoader } from "@/components/ui/overlay-loader";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 import { PresentationGenerationApi } from "../../services/api/presentation-generation";
 import { clearOutlines, setPresentationId } from "@/store/slices/presentationGeneration";
 import { useDispatch, useSelector } from "react-redux";
@@ -265,11 +265,9 @@ const DocumentsPreviewPage: React.FC = () => {
 
   return (
     <div className={`bg-white/90 min-h-screen flex flex-col w-full`}>
-      <OverlayLoader
+      <FullscreenLoader
         show={showLoading.show}
-        text={showLoading.message}
-        showProgress={showLoading.progress}
-        duration={showLoading.duration}
+        message={showLoading.message}
       />
       <Header />
       <div className="flex mt-6 gap-4 font-manrope">

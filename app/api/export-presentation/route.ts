@@ -143,8 +143,14 @@ export async function POST(req: NextRequest) {
 
   try {
     if (!(await bundledExportPackageAvailable())) {
-      throw new Error(
-        "presentation-export runtime is not available. Run scripts/sync-presentation-export.cjs to install it."
+      return NextResponse.json(
+        {
+          error:
+            "Server-side export runtime (presentation-export) is not installed in this environment.",
+          export_unavailable: true,
+          success: false,
+        },
+        { status: 501 }
       );
     }
 

@@ -7,12 +7,12 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Montserrat Semi-Bold": "static/Montserrat SemiBold.ttf",
-      "Montserrat Bold": "static/Montserrat Bold.ttf",
-      "Montserrat Medium": "static/Montserrat Medium.ttf",
-      "Arimo Bold": "static/Arimo Bold.ttf",
-      "Montserrat": "static/Montserrat Regular.ttf",
-      "Proxima Nova Bold": "static/Proxima Nova Bold.otf"
+      "Montserrat Semi-Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat Medium": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Arimo Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Montserrat": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Proxima Nova Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
     },
     "merged_components": [
       {
@@ -24775,7 +24775,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Montserrat",
-          "url": "static/Montserrat Regular.ttf"
+          "url": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
         }
       }
     },
@@ -70875,8 +70875,8 @@ export const BUNDLED_TEMPLATES = [
       }
     ],
     "fonts": {
-      "Montserrat Medium": "static/Montserrat Medium.ttf",
-      "Montserrat Semi-Bold": "static/Montserrat SemiBold.ttf",
+      "Montserrat Medium": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat Semi-Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
       "Montserrat": "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap"
     },
     "theme": {
@@ -70912,9 +70912,9 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "thin",
     "fonts": {
-      "Playfair Display Bold": "static/Playfair Display Bold Italic.ttf",
-      "DM Sans Bold": "static/DM Sans Bold.ttf",
-      "DM Sans": "static/DM Sans Regular.ttf",
+      "Playfair Display Bold": "vendor/fonts/serif/playfairdisplay/PlayfairDisplay-Italic[wght].ttf",
+      "DM Sans Bold": "vendor/fonts/sans_serif/dmsans/DMSans[opsz,wght].ttf",
+      "DM Sans": "vendor/fonts/sans_serif/dmsans/DMSans[opsz,wght].ttf",
       "Playfair Display": "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap"
     },
     "merged_components": [
@@ -99027,7 +99027,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "DM Sans Bold",
-          "url": "static/DM Sans Bold.ttf"
+          "url": "vendor/fonts/sans_serif/dmsans/DMSans[opsz,wght].ttf"
         }
       }
     }
@@ -127221,12 +127221,12 @@ export const BUNDLED_TEMPLATES = [
       }
     ],
     "fonts": {
-      "DM Sans Bold": "static/DM Sans Bold.ttf",
-      "Montserrat Medium": "static/Montserrat Medium.ttf",
-      "Montserrat Bold": "static/Montserrat Bold.ttf",
-      "Anton": "static/Anton Regular.ttf",
-      "Montserrat Semi-Bold": "static/Montserrat SemiBold.ttf",
-      "Montserrat": "static/Montserrat Regular.ttf"
+      "DM Sans Bold": "vendor/fonts/sans_serif/dmsans/DMSans[opsz,wght].ttf",
+      "Montserrat Medium": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Anton": "vendor/fonts/display/anton/Anton-Regular.ttf",
+      "Montserrat Semi-Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
     },
     "theme": {
       "colors": {
@@ -127250,7 +127250,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Montserrat Bold",
-          "url": "static/Montserrat Bold.ttf"
+          "url": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
         }
       }
     }
@@ -144689,13 +144689,13 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Poppins": "static/Poppins Regular.ttf",
-      "Poppins Medium": "static/Poppins Medium.ttf",
-      "Poppins Light": "static/Poppins Light.ttf",
-      "Montserrat Bold": "static/Montserrat Bold.ttf",
-      "Archivo Black": "static/Archivo Black Regular.ttf",
-      "Poppins Bold": "static/Poppins Bold.ttf",
-      "Poppins Semi-Bold": "static/Poppins SemiBold.ttf"
+      "Poppins": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf",
+      "Poppins Medium": "vendor/fonts/sans_serif/poppins/Poppins-Medium.ttf",
+      "Poppins Light": "vendor/fonts/sans_serif/poppins/Poppins-Light.ttf",
+      "Montserrat Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Archivo Black": "vendor/fonts/display/archivoblack/ArchivoBlack-Regular.ttf",
+      "Poppins Bold": "vendor/fonts/sans_serif/poppins/Poppins-Bold.ttf",
+      "Poppins Semi-Bold": "vendor/fonts/sans_serif/poppins/Poppins-SemiBold.ttf"
     },
     "merged_components": [
       {
@@ -170344,7 +170344,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Poppins",
-          "url": "static/Poppins Regular.ttf"
+          "url": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf"
         }
       }
     },
@@ -195975,12 +195975,12 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Poppins": "static/Poppins Regular.ttf",
-      "Montserrat Ultra-Bold": "static/Montserrat ExtraBold.ttf",
-      "Poppins Semi-Bold": "static/Poppins SemiBold.ttf",
-      "Poppins Medium": "static/Poppins Medium.ttf",
-      "Poppins Bold": "static/Poppins Bold.ttf",
-      "Montserrat Semi-Bold": "static/Montserrat SemiBold.ttf"
+      "Poppins": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf",
+      "Montserrat Ultra-Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Poppins Semi-Bold": "vendor/fonts/sans_serif/poppins/Poppins-SemiBold.ttf",
+      "Poppins Medium": "vendor/fonts/sans_serif/poppins/Poppins-Medium.ttf",
+      "Poppins Bold": "vendor/fonts/sans_serif/poppins/Poppins-Bold.ttf",
+      "Montserrat Semi-Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
     },
     "merged_components": [
       {
@@ -216970,7 +216970,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Poppins",
-          "url": "static/Poppins Regular.ttf"
+          "url": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf"
         }
       }
     },
@@ -280896,10 +280896,10 @@ export const BUNDLED_TEMPLATES = [
       }
     ],
     "fonts": {
-      "Lato Bold": "static/Lato Bold.ttf",
-      "Lato Heavy": "static/Lato Black.ttf",
-      "Lato": "static/Lato Regular.ttf",
-      "Anton": "static/Anton Regular.ttf"
+      "Lato Bold": "vendor/fonts/sans_serif/lato/Lato-Bold.ttf",
+      "Lato Heavy": "vendor/fonts/sans_serif/lato/Lato-Black.ttf",
+      "Lato": "vendor/fonts/sans_serif/lato/Lato-Regular.ttf",
+      "Anton": "vendor/fonts/display/anton/Anton-Regular.ttf"
     },
     "theme": {
       "colors": {
@@ -280923,7 +280923,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Lato",
-          "url": "static/Lato Regular.ttf"
+          "url": "vendor/fonts/sans_serif/lato/Lato-Regular.ttf"
         }
       }
     }
@@ -280956,14 +280956,14 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Montserrat",
-          "url": "static/Montserrat Regular.ttf"
+          "url": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
         }
       }
     },
     "fonts": {
-      "Montserrat Bold": "static/Montserrat Bold.ttf",
-      "Montserrat": "static/Montserrat Regular.ttf",
-      "Montserrat Medium": "static/Montserrat Medium.ttf"
+      "Montserrat Bold": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf",
+      "Montserrat Medium": "vendor/fonts/sans_serif/montserrat/Montserrat[wght].ttf"
     },
     "merged_components": [
       {
@@ -332653,11 +332653,11 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Poppins Bold": "static/Poppins Bold.ttf",
-      "Poppins": "static/Poppins Regular.ttf",
-      "Archivo Black": "static/Archivo Black Regular.ttf",
-      "Poppins Medium": "static/Poppins Medium.ttf",
-      "Poppins Semi-Bold": "static/Poppins SemiBold.ttf"
+      "Poppins Bold": "vendor/fonts/sans_serif/poppins/Poppins-Bold.ttf",
+      "Poppins": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf",
+      "Archivo Black": "vendor/fonts/display/archivoblack/ArchivoBlack-Regular.ttf",
+      "Poppins Medium": "vendor/fonts/sans_serif/poppins/Poppins-Medium.ttf",
+      "Poppins Semi-Bold": "vendor/fonts/sans_serif/poppins/Poppins-SemiBold.ttf"
     },
     "merged_components": [
       {
@@ -357974,7 +357974,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Poppins",
-          "url": "static/Poppins Regular.ttf"
+          "url": "vendor/fonts/sans_serif/poppins/Poppins-Regular.ttf"
         }
       }
     },
@@ -383291,12 +383291,12 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Inter 1 Bold": "static/Inter 1 Bold.ttf",
-      "Inter 2 Bold": "static/Inter 2 Bold.ttf",
-      "Inter 2": "static/Inter 2 Normal.ttf",
-      "Inter 1": "static/Inter 1 Normal.ttf",
-      "Inter 1 Medium": "static/Inter 1 Medium.ttf",
-      "Inter 1 Semi-Bold": "static/Inter 1 SemiBold.ttf"
+      "Inter 1 Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 2 Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 2": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1 Medium": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1 Semi-Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf"
     },
     "merged_components": [
       {
@@ -413911,7 +413911,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Inter 1",
-          "url": "static/Inter 1 Normal.ttf"
+          "url": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf"
         }
       }
     },
@@ -444563,11 +444563,11 @@ export const BUNDLED_TEMPLATES = [
     "thumbnail": "static/thumbnail.png",
     "icon_type": "regular",
     "fonts": {
-      "Inter 1 Semi-Bold": "static/Inter 1 SemiBold.ttf",
-      "Inter 1": "static/Inter 1 Normal.ttf",
-      "Inter 1 Ultra-Bold": "static/Inter 1 ExtraBold.ttf",
-      "Inter 1 Heavy": "static/Inter 1 Black.ttf",
-      "Inter 1 Bold": "static/Inter 1 Bold.ttf",
+      "Inter 1 Semi-Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1 Ultra-Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1 Heavy": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
+      "Inter 1 Bold": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf",
       "Poppins": "https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&display=swap"
     },
     "merged_components": [
@@ -463993,7 +463993,7 @@ export const BUNDLED_TEMPLATES = [
       "fonts": {
         "textFont": {
           "name": "Inter 1",
-          "url": "static/Inter 1 Normal.ttf"
+          "url": "vendor/fonts/sans_serif/inter/Inter[opsz,wght].ttf"
         }
       }
     },
@@ -517551,9 +517551,9 @@ export const BUNDLED_TEMPLATES = [
     },
     "fonts": {
       "DM Sans": "https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,700;1,400&display=swap",
-      "Tinos": "static/Tinos.ttf",
-      "Tinos Bold": "static/Tinos Bold.ttf",
-      "DM Sans Bold": "static/DM Sans Bold.ttf",
+      "Tinos": "vendor/fonts/serif/notoserif/NotoSerif[wdth,wght].ttf",
+      "Tinos Bold": "vendor/fonts/serif/notoserif/NotoSerif[wdth,wght].ttf",
+      "DM Sans Bold": "vendor/fonts/sans_serif/dmsans/DMSans[opsz,wght].ttf",
       "Poppins": "https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap"
     },
     "merged_components": [

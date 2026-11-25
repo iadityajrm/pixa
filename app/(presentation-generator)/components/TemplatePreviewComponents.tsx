@@ -14,14 +14,9 @@ export function TemplatePreviewStage({
     <div
       className={cn(
         "relative overflow-hidden bg-[#F8FBFB]",
-        selectionPage ? "h-[249px] px-[34px] py-5" : "p-5"
+        selectionPage ? "h-[249px]" : ""
       )}
     >
-      <img
-        src="/card_bg.svg"
-        alt=""
-        className="absolute left-0 top-0 h-full w-full object-cover"
-      />
       {children}
     </div>
   );

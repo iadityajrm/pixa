@@ -223,6 +223,19 @@ const PresentationPage = ({ presentation_id, exportCookie }: PresentationPagePro
 
   const slides = presentationData?.slides ?? [];
   const isLoading = contentLoading || slides.length === 0;
+  const autoPrintTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || error || autoPrintTriggeredRef.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("autoprint") !== "1") return;
+    autoPrintTriggeredRef.current = true;
+    const timer = window.setTimeout(() => {
+      window.print();
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [isLoading, error]);
 
   return (
     <div className="m-0 flex flex-col overflow-visible p-0">
