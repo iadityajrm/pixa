@@ -111,6 +111,15 @@ export async function proxy(request: NextRequest) {
 
   // Desktop guard / public pages
   if (!pathname.startsWith("/api/") && !isFastApiAssetPath(pathname) && pathname !== "/pdf-maker") {
+    // Redirect already-authenticated users away from /login
+    if ((pathname === "/login" || pathname.startsWith("/login/")) && !isAuthDisabled()) {
+      const authStatus = await getAuthStatusFromRequest(request.headers.get("cookie"));
+      if (authStatus.authenticated) {
+        const destination = authStatus.role === "admin" ? "/adminconsole" : "/dashboard";
+        return NextResponse.redirect(new URL(destination, request.url));
+      }
+    }
+
     // Check if the user is visiting a dashboard/protected page without authentication
     if (
       pathname === "/dashboard" ||

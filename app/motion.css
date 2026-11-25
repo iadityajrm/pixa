@@ -6,20 +6,20 @@
 }
 
 .motion-enter {
-  animation: presenton-content-enter 220ms var(--motion-ease-out) backwards;
+  animation: presenton-fade-in 320ms var(--motion-ease-out) backwards;
 }
 
 .motion-fade {
-  animation: presenton-fade-in 180ms var(--motion-ease-out) backwards;
+  animation: presenton-fade-in 320ms var(--motion-ease-out) backwards;
 }
 
 .motion-enter[data-motion-complete], .motion-fade[data-motion-complete] {
   animation: none;
 }
 
-.motion-delay-1 { animation-delay: 30ms; }
-.motion-delay-2 { animation-delay: 60ms; }
-.motion-delay-3 { animation-delay: 90ms; }
+.motion-delay-1 { animation-delay: 70ms; }
+.motion-delay-2 { animation-delay: 140ms; }
+.motion-delay-3 { animation-delay: 210ms; }
 
 /* Move the selection itself to preserve context when switching modes or tabs.
    Transitions retarget smoothly if the user changes their mind mid-flight. */

@@ -177,11 +177,7 @@ export default function AuthModal({
             disabled={isSubmitting}
             className="w-full rounded-lg bg-[#3478F6] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2563EB] disabled:opacity-50"
           >
-            {isSubmitting
-              ? "Please wait..."
-              : isLoginMode
-              ? "Sign In & Continue"
-              : "Sign Up & Continue"}
+            {isLoginMode ? "Sign In & Continue" : "Sign Up & Continue"}
           </button>
         </form>
       </DialogContent>

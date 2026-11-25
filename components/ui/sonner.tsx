@@ -78,6 +78,7 @@ const Toaster = ({ icons, ...props }: ToasterProps) => {
           left: 0 !important;
           right: 0 !important;
           width: 100% !important;
+          transform: none !important;
           display: flex !important;
           justify-content: center !important;
           pointer-events: none !important;

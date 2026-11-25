@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import UploadPage from "./UploadPage";
 import GenerateHeader from "./GenerateHeader";
@@ -25,6 +25,21 @@ export default function HybridUploadLanding({
 }: HybridUploadLandingProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [showAsciiBg, setShowAsciiBg] = useState(false);
+
+  useEffect(() => {
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const updateVisibility = () => {
+      setShowAsciiBg(document.visibilityState === "visible");
+    };
+    updateVisibility();
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
   const [selectedTopic, setSelectedTopic] = useState<{
     topic: string;
     slides?: number;
@@ -45,15 +60,17 @@ export default function HybridUploadLanding({
   return (
     <div className="relative flex min-h-dvh flex-col bg-[#F6F6F9] dark:bg-zinc-950 transition-colors overflow-hidden">
       {/* Background GradientASCII Animation */}
-      <div className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden opacity-30 dark:opacity-40">
-        <GradientASCII
-          colors={['#1e3fd8', '#f6f8ff', '#a5d8ff', '#38bdf8']}
-          shape="horizon"
-          characters=" =+xX0S8#@"
-          cellSize={18}
-          density={0.8}
-        />
-      </div>
+      {showAsciiBg && (
+        <div className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-hidden opacity-30 dark:opacity-40">
+          <GradientASCII
+            colors={['#1e3fd8', '#f6f8ff', '#a5d8ff', '#38bdf8']}
+            shape="horizon"
+            characters=" =+xX0S8#@"
+            cellSize={18}
+            density={0.8}
+          />
+        </div>
+      )}
 
       <div className="relative z-10 flex min-h-dvh flex-col">
         <GenerateHeader

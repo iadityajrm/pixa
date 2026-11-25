@@ -5,7 +5,7 @@ import "katex/dist/katex.min.css";
 import { Providers } from "./providers";
 import MixpanelInitializer from "./MixpanelInitializer";
 import { Toaster } from "@/components/ui/sonner";
-import TailwindBrowserRuntime from "@/components/runtime/TailwindBrowserRuntime";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -66,6 +66,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground transition-colors duration-200">
+        <NavigationProgress />
         <Providers>
           <MixpanelInitializer>
 
@@ -73,7 +74,6 @@ export default function RootLayout({
 
           </MixpanelInitializer>
         </Providers>
-        <TailwindBrowserRuntime />
         <Toaster position="top-center" />
       </body>
     </html>

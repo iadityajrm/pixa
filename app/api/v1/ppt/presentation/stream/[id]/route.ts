@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { repairBrokenSlidesBatch } from "@/lib/v3/batched-slide-repair";
 import crypto from "crypto";
 import { query, queryOne } from "@/lib/v3/db";
 import { getTemplateById } from "@/lib/v3/templates";

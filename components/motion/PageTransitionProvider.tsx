@@ -58,10 +58,7 @@ export function PageTransitionProvider({
 
   return (
     <PageTransitionContext.Provider value={{ navigate, isNavigating }}>
-      <div
-        key={pathname}
-        className="page-transition-enter w-full flex-1 flex flex-col"
-      >
+      <div className="w-full flex-1 flex flex-col">
         {children}
       </div>
     </PageTransitionContext.Provider>

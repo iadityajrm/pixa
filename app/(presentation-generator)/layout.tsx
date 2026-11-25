@@ -2,6 +2,7 @@ import React from "react";
 import { headers } from "next/headers";
 import { requireAppSession } from "@/utils/serverAuth";
 import { ConfigurationInitializer } from "../ConfigurationInitializer";
+import TailwindBrowserRuntime from "@/components/runtime/TailwindBrowserRuntime";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const headerList = await headers();
@@ -20,6 +21,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <div>
       <ConfigurationInitializer>{children}</ConfigurationInitializer>
+      <TailwindBrowserRuntime />
     </div>
   );
 }

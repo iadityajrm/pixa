@@ -12,7 +12,6 @@ import { RootState } from "@/store/store";
 import { cn } from "@/lib/utils";
 import "../../utils/prism-languages";
 import { Skeleton, PresentationSkeleton } from "@/components/ui/skeleton";
-import { OverlayLoader } from "@/components/ui/overlay-loader";
 import PresentationMode from "./PresentationMode";
 import SidePanel from "./SidePanel";
 import SlideContent from "./SlideContent";
@@ -860,13 +859,54 @@ const PresentationPage: React.FC<PresentationPageProps> = ({
           <PresentationSkeleton />
         </div>
       )}
-      <OverlayLoader
-        show={loadingState.isLoading}
-        text={loadingState.message}
-        showProgress={loadingState.showProgress}
-        duration={loadingState.duration}
-        extra_info={loadingState.extra_info}
-      />
+      {(loadingState.isLoading || Boolean(isStreaming)) && (
+        <div
+          className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-white/95 px-6 dark:bg-[#101323]/95"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#3478F6] border-t-transparent" />
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-[#101323] dark:text-white">
+                {isStreaming || (stream && loadingState.isLoading)
+                  ? "Generating your presentation, please wait"
+                  : loadingState.message || "Loading presentation"}
+              </p>
+              {(isStreaming || (stream && loadingState.isLoading)) && (
+                <p className="text-xs text-[#667085] dark:text-neutral-400">
+                  Please don&apos;t close this tab until all slides are generated.
+                </p>
+              )}
+            </div>
+            {(isStreaming || (stream && loadingState.isLoading)) && (() => {
+              const total = presentationData?.outlines?.length ?? 0;
+              const pct = total > 0
+                ? Math.min(100, Math.round((slidesLength / total) * 100))
+                : slidesLength > 0
+                  ? Math.min(90, slidesLength * 12)
+                  : 8;
+              return (
+                <div className="w-full space-y-1.5">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB] dark:bg-neutral-800">
+                    <div
+                      className="h-full rounded-full bg-[#3478F6] transition-all duration-500 ease-out"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="text-xs font-medium text-[#3478F6]">
+                    {total > 0
+                      ? `${slidesLength} of ${total} slides generated (${pct}%)`
+                      : slidesLength > 0
+                        ? `${slidesLength} slides generated...`
+                        : "Preparing slides..."}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
       <div
         id="presentation-slides-wrapper"
         data-generation-mode={isSmartPresentation ? "smart" : "standard"}
@@ -968,13 +1008,6 @@ const PresentationPage: React.FC<PresentationPageProps> = ({
                 />
               </div>
             )}
-            {presentationData?.slides && presentationData.slides.length > 0 && (
-              <MobileSlideGalleryBar
-                slides={presentationData.slides}
-                selectedSlide={selectedSlide}
-                onSelectSlide={handleEditorSlideNavigation}
-              />
-            )}
           </div>
 
           <button
@@ -1048,6 +1081,13 @@ const PresentationPage: React.FC<PresentationPageProps> = ({
             </div>
           </div>
         </div>
+        {presentationData?.slides && presentationData.slides.length > 0 && (
+          <MobileSlideGalleryBar
+            slides={presentationData.slides}
+            selectedSlide={selectedSlide}
+            onSelectSlide={handleEditorSlideNavigation}
+          />
+        )}
       </div>
     </div>
   );

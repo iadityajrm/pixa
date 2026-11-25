@@ -7,6 +7,9 @@ interface OverlayLoaderProps {
   className?: string;
   show: boolean;
   showProgress?: boolean;
+  progressVariant?: "linear" | "circular";
+  progressValue?: number;
+  progressLabel?: string;
   duration?: number;
   extra_info?: string;
   onProgressComplete?: () => void;
@@ -17,6 +20,9 @@ export const OverlayLoader = ({
   className,
   show,
   showProgress = false,
+  progressVariant = "linear",
+  progressValue,
+  progressLabel,
   duration = 10,
   onProgressComplete,
   extra_info,
@@ -51,15 +57,82 @@ export const OverlayLoader = ({
           className
         )}
       >
-        <div
-          className="overlay-loader-dots shrink-0"
-          role="status"
-          aria-label="Loading"
-        />
-        {showProgress && (
-          <div className="w-full space-y-6 pt-4">
-            <ProgressBar duration={duration} onComplete={onProgressComplete} />
+        {progressVariant === "circular" ? (
+          <div
+            className="relative z-10 flex flex-col items-center gap-3"
+            role="status"
+            aria-label={text || "Loading"}
+          >
+            {(() => {
+              const clamped = Math.max(
+                0,
+                Math.min(100, Math.round(progressValue ?? 0))
+              );
+              const radius = 42;
+              const circumference = 2 * Math.PI * radius;
+              const strokeDashoffset =
+                circumference - (clamped / 100) * circumference;
+
+              return (
+                <div className="relative flex h-28 w-28 items-center justify-center">
+                  <svg
+                    className={cn(
+                      "h-28 w-28 -rotate-90",
+                      clamped === 0 && "animate-spin"
+                    )}
+                    viewBox="0 0 100 100"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      stroke="#E5E7EB"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      stroke="#3478F6"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={
+                        clamped === 0 ? circumference * 0.75 : strokeDashoffset
+                      }
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-lg font-semibold text-[#101323]">
+                    {clamped}%
+                  </span>
+                </div>
+              );
+            })()}
+            {progressLabel ? (
+              <p className="text-xs font-medium text-[#3478F6]">
+                {progressLabel}
+              </p>
+            ) : null}
           </div>
+        ) : (
+          <>
+            <div
+              className="overlay-loader-dots shrink-0"
+              role="status"
+              aria-label="Loading"
+            />
+            {showProgress && (
+              <div className="w-full space-y-6 pt-4">
+                <ProgressBar
+                  duration={duration}
+                  onComplete={onProgressComplete}
+                />
+              </div>
+            )}
+          </>
         )}
         <svg
           className="absolute left-0 bottom-0"

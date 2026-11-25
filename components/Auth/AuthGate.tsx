@@ -68,7 +68,20 @@ export default function AuthGate() {
 
       // If returnTo is specified, navigate there so pending presentation generation resumes
       if (returnTo) {
-        router.replace(returnTo);
+        window.location.assign(returnTo);
+        return;
+      }
+
+      // If user had a pending presentation draft before logging in, return to /upload to resume it
+      let hasPendingDraft = false;
+      try {
+        hasPendingDraft = Boolean(sessionStorage.getItem("pending_presentation_draft"));
+      } catch {
+        hasPendingDraft = false;
+      }
+
+      if (hasPendingDraft) {
+        window.location.assign("/upload");
         return;
       }
 
@@ -77,7 +90,7 @@ export default function AuthGate() {
         data?.role === "admin" || email.trim().toLowerCase() === "admin@framewrk.site"
           ? "/adminconsole"
           : "/dashboard";
-      router.replace(destination);
+      window.location.assign(destination);
     } catch (err: any) {
       notify.error("Network error", "Unable to connect to server");
       setIsSubmitting(false);
@@ -179,9 +192,7 @@ export default function AuthGate() {
             disabled={isSubmitting}
             className="w-full rounded-lg bg-[#3478F6] py-2.5 text-sm font-semibold text-white transition hover:bg-[#2563EB] disabled:opacity-50"
           >
-            {isSubmitting
-              ? "Please wait..."
-              : isLoginMode
+            {isLoginMode
               ? (returnTo ? "Log In & Generate" : "Log In")
               : (returnTo ? "Sign Up & Generate" : "Create Account")}
           </button>
